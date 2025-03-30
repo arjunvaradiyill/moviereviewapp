@@ -1,5 +1,5 @@
 {
-  "name": "movie-review-server",
+  "name": "xmovie-review-server",
   "version": "1.0.0",
   "description": "Movie Review Application Backend",
   "main": "server.js",

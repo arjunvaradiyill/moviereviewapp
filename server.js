@@ -11,10 +11,10 @@ const app = express();
 
 // CORS Configuration
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://moviereview-client.onrender.com', 'http://localhost:3000']
-    : 'http://localhost:3000',
+  origin: ['http://localhost:3000', 'https://moviereviewapp-client.onrender.com'],
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
 };
 
