@@ -5,7 +5,7 @@ const createAdmin = async () => {
     const response = await axios.post('http://localhost:8000/api/auth/create-admin', {
       username: 'admin2',
       email: 'admin2@example.com',
-      password: 'Admin123!'
+      password: 'Admin123'
     });
 
     console.log('Admin user created successfully:', response.data);
