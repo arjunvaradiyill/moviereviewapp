@@ -28,6 +28,15 @@ const movieSchema = new mongoose.Schema({
       message: 'Release year must be an integer'
     }
   },
+  releaseMonth: {
+    type: Number,
+    min: [1, 'Release month must be between 1 and 12'],
+    max: [12, 'Release month must be between 1 and 12'],
+    validate: {
+      validator: Number.isInteger,
+      message: 'Release month must be an integer'
+    }
+  },
   genre: {
     type: [String],
     required: [true, 'Genre is required'],

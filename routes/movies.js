@@ -35,11 +35,18 @@ router.get('/', async (req, res) => {
 router.get('/upcoming', async (req, res) => {
   try {
     const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().getMonth() + 1; // JavaScript months are 0-indexed
     
+    // Find movies that are released in the future (current year but future month, or future year)
     const upcomingMovies = await Movie.find({ 
-      releaseYear: { $gte: currentYear } 
+      $or: [
+        // Current year but future month
+        { releaseYear: currentYear, releaseMonth: { $gte: currentMonth } },
+        // Future years
+        { releaseYear: { $gt: currentYear } }
+      ]
     })
-    .sort({ releaseYear: 1 })
+    .sort({ releaseYear: 1, releaseMonth: 1 })
     .limit(10);
     
     res.json(upcomingMovies);
@@ -68,6 +75,7 @@ router.post('/', [auth, isAdmin], [
   body('title').trim().notEmpty().withMessage('Title is required'),
   body('description').trim().notEmpty().withMessage('Description is required'),
   body('releaseYear').isInt({ min: 1888, max: new Date().getFullYear() + 5 }).withMessage('Invalid release year'),
+  body('releaseMonth').optional().isInt({ min: 1, max: 12 }).withMessage('Release month must be between 1 and 12'),
   body('genre').isArray().withMessage('Genre must be an array'),
   body('genre.*').isIn([
     'Action', 'Adventure', 'Animation', 'Comedy', 'Crime',
@@ -94,7 +102,8 @@ router.post('/', [auth, isAdmin], [
     const { 
       title, 
       description, 
-      releaseYear, 
+      releaseYear,
+      releaseMonth, 
       genre, 
       director, 
       cast, 
@@ -108,6 +117,7 @@ router.post('/', [auth, isAdmin], [
       title,
       description,
       releaseYear,
+      releaseMonth,
       genre,
       director,
       cast,
@@ -133,6 +143,7 @@ router.put('/:id', [auth, isAdmin], [
   body('title').optional().trim().notEmpty().withMessage('Title cannot be empty'),
   body('description').optional().trim().notEmpty().withMessage('Description cannot be empty'),
   body('releaseYear').optional().isInt({ min: 1888, max: new Date().getFullYear() + 5 }).withMessage('Invalid release year'),
+  body('releaseMonth').optional().isInt({ min: 1, max: 12 }).withMessage('Release month must be between 1 and 12'),
   body('genre').optional().isArray().withMessage('Genre must be an array'),
   body('genre.*').optional().isIn([
     'Action', 'Adventure', 'Animation', 'Comedy', 'Crime',
