@@ -201,9 +201,23 @@ router.put('/me/password', auth, async (req, res) => {
 // Get user's reviews
 router.get('/me/reviews', auth, async (req, res) => {
   try {
+    console.log('Fetching reviews for user:', req.user._id);
+    
+    // First check if user exists
+    const userExists = await User.findById(req.user._id);
+    if (!userExists) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
     const reviews = await Review.find({ user: req.user._id })
-      .populate('movie')
+      .populate({
+        path: 'movie',
+        select: 'title posterUrl releaseDate genres director averageRating'
+      })
       .sort({ createdAt: -1 });
+    
+    console.log(`Found ${reviews.length} reviews for user`);
+    
     res.json(reviews);
   } catch (error) {
     console.error('Error fetching user reviews:', error);
