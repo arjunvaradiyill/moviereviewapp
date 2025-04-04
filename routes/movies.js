@@ -31,6 +31,24 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get upcoming movies (movies with future release dates)
+router.get('/upcoming', async (req, res) => {
+  try {
+    const currentYear = new Date().getFullYear();
+    
+    const upcomingMovies = await Movie.find({ 
+      releaseYear: { $gte: currentYear } 
+    })
+    .sort({ releaseYear: 1 })
+    .limit(10);
+    
+    res.json(upcomingMovies);
+  } catch (error) {
+    console.error('Error fetching upcoming movies:', error);
+    res.status(500).json({ message: 'Server error while fetching upcoming movies' });
+  }
+});
+
 // Get a single movie by ID
 router.get('/:id', async (req, res) => {
   try {
@@ -60,7 +78,9 @@ router.post('/', [auth, isAdmin], [
   body('director').trim().notEmpty().withMessage('Director is required'),
   body('cast').isArray().withMessage('Cast must be an array'),
   body('cast.*').trim().notEmpty().withMessage('Cast member name cannot be empty'),
-  body('posterUrl').trim().isURL().withMessage('Invalid poster URL')
+  body('posterUrl').trim().isURL().withMessage('Invalid poster URL'),
+  body('bannerUrl').optional().trim().isURL().withMessage('Invalid banner URL'),
+  body('trailerUrl').optional().trim().isURL().withMessage('Invalid trailer URL')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -71,7 +91,17 @@ router.post('/', [auth, isAdmin], [
       });
     }
 
-    const { title, description, releaseYear, genre, director, cast, posterUrl } = req.body;
+    const { 
+      title, 
+      description, 
+      releaseYear, 
+      genre, 
+      director, 
+      cast, 
+      posterUrl,
+      bannerUrl,
+      trailerUrl 
+    } = req.body;
 
     // Create new movie
     const movie = new Movie({
@@ -82,6 +112,8 @@ router.post('/', [auth, isAdmin], [
       director,
       cast,
       posterUrl,
+      bannerUrl,
+      trailerUrl,
       createdBy: req.user._id
     });
 
@@ -111,7 +143,9 @@ router.put('/:id', [auth, isAdmin], [
   body('director').optional().trim().notEmpty().withMessage('Director cannot be empty'),
   body('cast').optional().isArray().withMessage('Cast must be an array'),
   body('cast.*').optional().trim().notEmpty().withMessage('Cast member name cannot be empty'),
-  body('posterUrl').optional().trim().isURL().withMessage('Invalid poster URL')
+  body('posterUrl').optional().trim().isURL().withMessage('Invalid poster URL'),
+  body('bannerUrl').optional().trim().isURL().withMessage('Invalid banner URL'),
+  body('trailerUrl').optional().trim().isURL().withMessage('Invalid trailer URL')
 ], async (req, res) => {
   try {
     const errors = validationResult(req);

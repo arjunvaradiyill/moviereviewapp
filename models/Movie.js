@@ -69,6 +69,38 @@ const movieSchema = new mongoose.Schema({
       message: 'Invalid poster URL'
     }
   },
+  bannerUrl: {
+    type: String,
+    trim: true,
+    validate: {
+      validator: function(url) {
+        if (!url) return true; // Allow empty as it's not required
+        try {
+          new URL(url);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      },
+      message: 'Invalid banner URL'
+    }
+  },
+  trailerUrl: {
+    type: String,
+    trim: true,
+    validate: {
+      validator: function(url) {
+        if (!url) return true; // Allow empty as it's not required
+        try {
+          new URL(url);
+          return true;
+        } catch (error) {
+          return false;
+        }
+      },
+      message: 'Invalid trailer URL'
+    }
+  },
   averageRating: {
     type: Number,
     default: 0

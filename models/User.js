@@ -21,11 +21,19 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6
   },
+  profilePicture: {
+    type: String,
+    default: ''
+  },
   role: {
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
   },
+  watchlist: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Movie'
+  }],
   createdAt: {
     type: Date,
     default: Date.now
