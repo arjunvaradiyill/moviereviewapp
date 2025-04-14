@@ -34,14 +34,25 @@ router.get('/', async (req, res) => {
 // Get upcoming movies (movies with future release dates)
 router.get('/upcoming', async (req, res) => {
   try {
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1; // JavaScript months are 0-indexed
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
+    const currentDay = currentDate.getDate();
     
-    // Find movies that are released in the future (current year but future month, or future year)
+    // Find movies that are released in the future
     const upcomingMovies = await Movie.find({ 
       $or: [
+        // Current year, current month, but future day (if we had a day field)
+        // Since we don't have day precision, exclude current month movies if we're past the 15th
+        { 
+          releaseYear: currentYear, 
+          releaseMonth: currentMonth,
+          // Only show current month if we're in the first half of the month
+          // This is a heuristic since we don't store the exact release day
+          $expr: { $lt: [currentDay, 15] }
+        },
         // Current year but future month
-        { releaseYear: currentYear, releaseMonth: { $gte: currentMonth } },
+        { releaseYear: currentYear, releaseMonth: { $gt: currentMonth } },
         // Future years
         { releaseYear: { $gt: currentYear } }
       ]
@@ -53,6 +64,24 @@ router.get('/upcoming', async (req, res) => {
   } catch (error) {
     console.error('Error fetching upcoming movies:', error);
     res.status(500).json({ message: 'Server error while fetching upcoming movies' });
+  }
+});
+
+// Get movies with banners
+router.get('/with-banners', async (req, res) => {
+  try {
+    // Find movies that have banners
+    const moviesWithBanners = await Movie.find({
+      bannerUrl: { $exists: true, $ne: null, $ne: '' }
+    })
+    .select('_id title description bannerUrl trailerUrl')
+    .sort({ createdAt: -1 })
+    .limit(5);
+    
+    res.json(moviesWithBanners);
+  } catch (error) {
+    console.error('Error fetching movies with banners:', error);
+    res.status(500).json({ message: 'Server error while fetching movies with banners' });
   }
 });
 
