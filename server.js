@@ -78,9 +78,39 @@ app.use('/api/movies', require('./routes/movies'));
 app.use('/api/reviews', require('./routes/reviews'));
 app.use('/api/users', require('./routes/users'));
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+// Enhanced health check endpoint
+app.get('/health', async (req, res) => {
+  let dbStatus = 'disconnected';
+  let dbLatency = null;
+  
+  // Check MongoDB connection
+  if (mongoose.connection.readyState === 1) {
+    try {
+      // Measure database latency
+      const startTime = Date.now();
+      await mongoose.connection.db.admin().ping();
+      dbLatency = Date.now() - startTime;
+      dbStatus = 'connected';
+    } catch (err) {
+      console.error('MongoDB health check error:', err);
+      dbStatus = 'error';
+    }
+  }
+  
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    server: {
+      uptime: process.uptime(),
+      memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024,
+      nodeVersion: process.version
+    },
+    database: {
+      status: dbStatus,
+      latency: dbLatency
+    },
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
 // Error handling middleware
